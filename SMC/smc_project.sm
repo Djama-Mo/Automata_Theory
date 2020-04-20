@@ -1,0 +1,70 @@
+%start MainMap::Array
+%class Appclass
+
+%map MainMap
+%%
+
+// State	Transition					End State		Action(s)
+
+Array {
+	
+		Letter(letter:string)				nil			{Memorise(letter); CountInc();}
+		Digit(letter:string)				nil			{Memorise(letter); CountInc();}
+		SqBracketSym[ctxt.CheckName()]			ElementsCount		{CountZero(); SaveName();}
+
+}
+
+
+ElementsCount {
+
+		Digit(letter:string)[ctxt.CheckCount()]		nil			{MemoriseCnt(letter); CountInc();}
+		SqBracketSym					nil			{CountInc();}
+		EqSym[ctxt.NonZero()]				nil			{CountInc();}
+		FigBracketSym[ctxt.NonZero()]			Elements		{CountZero();}
+
+}
+
+
+Elements {
+
+		Digit(letter:string)				Elements		{MemoriseElem(letter); CountInc();}
+		Minus(letter:string)				nil			{MemoriseElem(letter); CountInc();}
+		CommaSym(letter:string)[ctxt.NonZero()]		nil			{MemoriseElem(letter); CountInc();}
+		FigBracketSym[ctxt.NecEl()]			nil			{CountZero();}
+		EOS						OK			{Acceptable();}
+
+}
+
+
+OK {
+
+		EOS						nil			{Acceptable(); Printok();}
+
+}
+
+
+Error {
+
+		EOS						nil			{Unacceptable(); Printerror();}
+
+}
+
+
+Default {
+
+		Array						Array			{ClearSMC();}
+		Letter(letter:string)				Error			{Unacceptable();}
+		Digit(Letteer:string)				Error			{Unacceptable();}
+		SqBracketSym					Error			{Unacceptable();}
+		EqSym						Error			{Unacceptable();}
+		CommaSym(letter:string)				Error			{Unacceptable();}
+		Minus(letter:string)				Error			{Unacceptable();}
+		FigBracketSym					Error			{Unacceptable();}
+		Unknown						Error			{Unacceptable();}
+		EOS						Error			{Unacceptable();}
+
+}
+
+
+
+%%
