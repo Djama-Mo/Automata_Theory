@@ -3,6 +3,7 @@ import random
 import numpy
 import sys
 
+
 def main():
 
     count_of_templates = 0
@@ -25,6 +26,7 @@ def main():
     bool_choice = (True, False)
 
     if count_of_templates:
+        include(count_of_templates)
         for _ in range(count_of_templates):
             valid = random.choice(bool_choice)
             make_square_par_empty = random.choice(bool_choice)
@@ -34,9 +36,10 @@ def main():
 
         print('Templates have been successfully written into specified text file')
 
+
 class Template(object):
 
-    __min_arr_cnt, __max_arr_cnt, __max_name_length, __max_cnt_length, __min_int_val, __max_int_val, __critical_arr_length, instances_amount = 1, 11, 15, 9, -32768, 32767, 100, 0
+    __min_arr_cnt, __max_arr_cnt, __max_name_length, __max_cnt_length, __min_int_val, __max_int_val, __critical_arr_length, instances_amount, count_of_tmp = 1, 11, 15, 9, -32768, 32767, 100, 0, 0
 
     '''Main constructor'''
     def __init__(self, valid=True, make_square_par_empty=False, make_square_fig_empty=False):
@@ -107,6 +110,15 @@ def put_in_file(location, content):
     with open(location + '/templates.txt', 'a+') as fh:
         fh.write(f'{content}\n')
     return 0
+
+
+def include(count_of_templates):
+    with open('RegEx_time.txt', '+a') as fh:
+        fh.write(f'{count_of_templates}\n')
+    with open('/home/djama/Рабочий стол/SMC/SMC_time.txt', '+a') as fh:
+        fh.write(f'{count_of_templates}\n')
+    with open('PLY_time.txt', '+a') as fh:
+        fh.write(f'{count_of_templates}\n')
 
 
 class Menu(object):
