@@ -14,6 +14,8 @@ def main():
     for line in gen_strings_file.readlines():
         match = tmp.CheckString(line.rstrip())
     end = time.time()
+    with open('SMC_time.txt', '+a') as time_file:
+        time_file.write(f"{end - start}\n")
     print(end - start)
     for key in tmp.result.keys():
         result.write(key + ' ')
