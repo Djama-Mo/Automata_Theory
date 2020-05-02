@@ -4,9 +4,9 @@ import time
 
 def main():
     print("Main's starting")
-    file = open('templates.txt', 'r')
-    tmp = file.read()
-    file.close()
+    file1 = open('templates.txt', 'r')
+    tmp = file1.read()
+    file1.close()
 
     start = time.time()
     lexer = Lexer()
@@ -35,11 +35,15 @@ def main():
 class Lexer(object):
     states = (
         ('size', 'exclusive'),
+        ('signs', 'exclusive'),
         ('elements', 'exclusive'),
+        ('end', 'exclusive'),
+        ('equal', 'exclusive'),
+        ('figbr', 'exclusive'),
         ('elemmh', 'exclusive'),
-        ('figbr', 'exclusive')
+        ('endmh', 'exclusive')
     )
-    tokens = ('NAME', 'SIZE', 'SIZE_ZERO', 'ELEMENTS', 'ELEMMH', 'FIG_BR', 'NL', 'UNKNOWN')
+    tokens = ('NAME', 'SIGNS', 'SIZE', 'ELEMENTS', 'COMMA', 'END', 'SIZE_ZERO', 'ELEMMH', 'EQUAL', 'FIGBR', 'NL', 'UNKNOWN')
 
     def __init__(self):
         self.lexer = lex.lex(module=self)
@@ -69,15 +73,39 @@ class Lexer(object):
         t.lexer.begin('INITIAL')
         return t
 
+    """ ______________________1st type of string______________________ """
+
     def t_size_SIZE(self, t):
         r'\[\d{1,9}\]'
+        t.lexer.begin('signs')
+        return t
+
+    def t_signs_SIGNS(self, t):
+        r'=\{'
         t.lexer.begin('elements')
         return t
 
-    def t_size_SIZE_ZERO(self, t):
-        r'\[0?\]'
-        t.lexer.begin('elemmh')
+    def t_elements_ELEMENTS(self, t):
+        r'(\-\d+)|(\d+)'
+        t.lexer.begin('INITIAL')
         return t
+
+    def t_elements_END(self, t):
+        r'\}'
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_end_COMMA(self, t):
+        r'\,'
+        t.lexer.begin('elements')
+        return t
+
+    def t_end_END(self, t):
+        r'\}'
+        t.lexer.begin('INITIAL')
+        return t
+
+    """ ______________________1st type of string______________________ """
 
     def t_size_NL(self, t):
         r'(\n)'
@@ -90,8 +118,14 @@ class Lexer(object):
         t.lexer.begin('INITIAL')
         return t
 
-    def t_elements_ELEMENTS(self, t):
-        r'=\{(\-*\d*\,*)*\}'
+    def t_signs_NL(self, t):
+        r'(\n)'
+        t.lexer.lineno += len(t.value)
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_signs_UNKNOWN(self, t):
+        r'(.)'
         t.lexer.begin('INITIAL')
         return t
 
@@ -106,24 +140,60 @@ class Lexer(object):
         t.lexer.begin('INITIAL')
         return t
 
-    def t_elemmh_ELEMMH(self, t):
-        r'=\{(\-*\d+\,*)+'
-        t.lexer.begin('figbr')
-        return t
 
-    def t_elemmh_NL(self, t):
+    def t_end_NL(self, t):
         r'(\n)'
         t.lexer.lineno += len(t.value)
         t.lexer.begin('INITIAL')
         return t
 
-    def t_elemmh_UNKNOWN(self, t):
+    def t_end_UNKNOWN(self, t):
         r'(.)'
         t.lexer.begin('INITIAL')
         return t
 
-    def t_figbr_FIG_BR(self, t):
+    """ ______________________2nd type of string______________________ """
+
+    def t_size_SIZE_ZERO(self, t):
+        r'\[0?\]'
+        t.lexer.begin('equal')
+        return t
+
+    def t_equal_EQUAL(self, t):
+        r'='
+        t.lexer.begin('figbr')
+        return t
+
+    def t_figbr_FIGBR(self, t):
+        r'\{'
+        t.lexer.begin('elemmh')
+        return t
+
+    def t_elemmh_ELEMMH(self, t):
+        r'(\-?\d+)|(\d+)'
+        t.lexer.begin('endmh')
+        return t
+
+    def t_endmh_COMMA(self, t):
+        r'\,'
+        t.lexer.begin('elemmh')
+        return t
+
+    def t_endmh_END(self, t):
         r'\}'
+        t.lexer.begin('INITIAL')
+        return t
+
+    """ ______________________2nd type of string______________________ """
+
+    def t_equal_NL(self, t):
+        r'(\n)'
+        t.lexer.lineno += len(t.value)
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_equal_UNKNOWN(self, t):
+        r'(.)'
         t.lexer.begin('INITIAL')
         return t
 
@@ -137,6 +207,30 @@ class Lexer(object):
         r'(.)'
         t.lexer.begin('INITIAL')
         return t
+
+    def t_elemmh_NL(self, t):
+        r'(\n)'
+        t.lexer.lineno += len(t.value)
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_elemmh_UNKNOWN(self, t):
+        r'(.)'
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_endmh_NL(self, t):
+        r'(\n)'
+        t.lexer.lineno += len(t.value)
+        t.lexer.begin('INITIAL')
+        return t
+
+    def t_endmh_UNKNOWN(self, t):
+        r'(.)'
+        t.lexer.begin('INITIAL')
+        return t
+
+    """ ______________________ERRORS______________________ """
 
     def t_error(self, t):
         print("Illegal character '%s'" % t.value[0])
@@ -156,6 +250,22 @@ class Lexer(object):
 
     def t_figbr_error(self, t):
         print("Illegal character in figure bracket '%s'" % t.value[0])
+        t.lexer.begin('INITIAL')
+
+    def t_end_error(self, t):
+        print("Illegal character in end '%s'" % t.value[0])
+        t.lexer.begin('INITIAL')
+
+    def t_endmh_error(self, t):
+        print("Illegal character in end '%s'" % t.value[0])
+        t.lexer.begin('INITIAL')
+
+    def t_equal_error(self, t):
+        print("Illegal character in equal symbol '%s'" % t.value[0])
+        t.lexer.begin('INITIAL')
+
+    def t_signs_error(self, t):
+        print("Illegal character in signs '%s'" % t.value[0])
         t.lexer.begin('INITIAL')
 
 
